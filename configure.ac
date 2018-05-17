@@ -5,7 +5,7 @@
 # ----------------------------------------
 # Initialization
 # ----------------------------------------
-AC_PREREQ([2.59])
+AC_PREREQ([2.63])
 AC_INIT([tesseract],
         [m4_esyscmd_s([test -d .git && git describe --abbrev=4 || cat VERSION])],
         [https://github.com/tesseract-ocr/tesseract/issues],,
@@ -16,7 +16,7 @@ AC_LANG_COMPILER_REQUIRE
 CXXFLAGS=${CXXFLAGS:-""}
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([config])
-AC_CONFIG_SRCDIR([api/tesseractmain.cpp])
+AC_CONFIG_SRCDIR([src/api/tesseractmain.cpp])
 AC_PREFIX_DEFAULT([/usr/local])
 
 # Automake configuration. Do not require README file (we use README.md).
@@ -43,7 +43,7 @@ GENERIC_LIBRARY_NAME=tesseract
 
 # Release versioning. Get versions from PACKAGE_VERSION.
 AX_SPLIT_VERSION
-GENERIC_MAJOR_VERSION=$AX_MAJOR_VERSION
+GENERIC_MAJOR_VERSION=$(echo "$AX_MAJOR_VERSION" | $SED 's/^[[^0-9]]*//')
 GENERIC_MINOR_VERSION=$AX_MINOR_VERSION
 GENERIC_MICRO_VERSION=`echo "$AX_POINT_VERSION" | $SED 's/^\([[0-9]][[0-9]]*\).*/\1/'`
 
@@ -129,20 +129,6 @@ fi
 AX_CHECK_COMPILE_FLAG([-msse4.1], [sse41=true], [sse41=false])
 if $sse41; then
     AM_CONDITIONAL([SSE41_OPT], true)
-fi
-
-# Add platform-specific flags for the supported compiler options.
-if $avx -o $avx2 -o $sse41; then
-  case "${host_os}" in
-    *darwin* | *-macos10*)
-       if test -z "$CLANG"; then
-         # When using AVX, AVX2, or SSE4.1:
-         # Must tell AS to use clang integrated assembler,
-         # instead of the GNU based system assembler.
-         CXXFLAGS="$CXXFLAGS -Wa,-q"
-       fi
-      ;;
-  esac
 fi
 
 includedir="${includedir}/tesseract"
@@ -314,37 +300,23 @@ if test -d $curwd/gnu/lib ; then
 fi
 
 # ----------------------------------------
-# Check Compiler Characteristics and
-# configure automake. The two appear to
-# be intimately linked...
-# ----------------------------------------
-
-AC_PROG_LIBTOOL
-
-# ----------------------------------------
 # Additional checking of compiler characteristics
 # ----------------------------------------
 
 # Check Endianness. If Big Endian, this will define WORDS_BIGENDIAN
-# See also at end of this file, where we define INTEL_BYTE_ORDER
-# or MOTOROLA_BYTE_ORDER.
 AC_C_BIGENDIAN
 
 
 # ----------------------------------------
-# Check for programs we need
+# Init libtool
 # ----------------------------------------
 
-# Check where all the following programs are and set
-# variables accordingly:
 LT_INIT
 
 
 # ----------------------------------------
 # C++ related options
 # ----------------------------------------
-
-AC_LANG_CPLUSPLUS
 
 AC_MSG_CHECKING([if compiling with clang])
 AC_COMPILE_IFELSE(
@@ -504,20 +476,20 @@ fi
 
 # Output files
 AC_CONFIG_FILES([Makefile tesseract.pc])
-AC_CONFIG_FILES([api/Makefile])
-AC_CONFIG_FILES([api/tess_version.h])
-AC_CONFIG_FILES([arch/Makefile])
-AC_CONFIG_FILES([ccmain/Makefile])
-AC_CONFIG_FILES([opencl/Makefile])
-AC_CONFIG_FILES([ccstruct/Makefile])
-AC_CONFIG_FILES([ccutil/Makefile])
-AC_CONFIG_FILES([classify/Makefile])
-AC_CONFIG_FILES([cutil/Makefile])
-AC_CONFIG_FILES([dict/Makefile])
-AC_CONFIG_FILES([lstm/Makefile])
-AC_CONFIG_FILES([textord/Makefile])
-AC_CONFIG_FILES([viewer/Makefile])
-AC_CONFIG_FILES([wordrec/Makefile])
+AC_CONFIG_FILES([src/api/Makefile])
+AC_CONFIG_FILES([src/api/tess_version.h])
+AC_CONFIG_FILES([src/arch/Makefile])
+AC_CONFIG_FILES([src/ccmain/Makefile])
+AC_CONFIG_FILES([src/opencl/Makefile])
+AC_CONFIG_FILES([src/ccstruct/Makefile])
+AC_CONFIG_FILES([src/ccutil/Makefile])
+AC_CONFIG_FILES([src/classify/Makefile])
+AC_CONFIG_FILES([src/cutil/Makefile])
+AC_CONFIG_FILES([src/dict/Makefile])
+AC_CONFIG_FILES([src/lstm/Makefile])
+AC_CONFIG_FILES([src/textord/Makefile])
+AC_CONFIG_FILES([src/viewer/Makefile])
+AC_CONFIG_FILES([src/wordrec/Makefile])
 AC_CONFIG_FILES([tessdata/Makefile])
 AC_CONFIG_FILES([tessdata/configs/Makefile])
 AC_CONFIG_FILES([tessdata/tessconfigs/Makefile])
@@ -530,7 +502,7 @@ AC_CONFIG_FILES([java/com/google/scrollview/Makefile])
 AC_CONFIG_FILES([java/com/google/scrollview/events/Makefile])
 AC_CONFIG_FILES([java/com/google/scrollview/ui/Makefile])
 AC_CONFIG_FILES([doc/Makefile])
-AM_COND_IF([ENABLE_TRAINING], [AC_CONFIG_FILES(training/Makefile)])
+AM_COND_IF([ENABLE_TRAINING], [AC_CONFIG_FILES(src/training/Makefile)])
 AC_OUTPUT
 
 # Final message
