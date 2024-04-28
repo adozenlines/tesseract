@@ -2,7 +2,6 @@
  * File:        fileerr.h  (Formerly filerr.h)
  * Description: Errors for file utilities.
  * Author:      Ray Smith
- * Created:     Tue Aug 14 15:45:16 BST 1990
  *
  * (C) Copyright 1990, Hewlett-Packard Ltd.
  ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,18 +16,15 @@
  *
  **********************************************************************/
 
-#ifndef           FILEERR_H
-#define           FILEERR_H
+#ifndef FILEERR_H
+#define FILEERR_H
 
-#include          "errcode.h"
+#include "errcode.h"
 
-const ERRCODE CANTOPENFILE = "Can't open file";
-const ERRCODE CANTCREATEFILE = "Can't create file";
-const ERRCODE CANTMAKEPIPE = "Can't create pipe";
-const ERRCODE CANTCONNECTPIPE = "Can't reconnect pipes to stdin/stdout";
-const ERRCODE READFAILED = "Read of file failed";
-const ERRCODE WRITEFAILED = "Write of file failed";
-const ERRCODE SELECTFAILED = "Select failed";
+namespace tesseract {
 
-const ERRCODE EXECFAILED = "Could not exec new process";
+constexpr ERRCODE CANTOPENFILE("Can't open file");
+
+} // namespace tesseract
+
 #endif

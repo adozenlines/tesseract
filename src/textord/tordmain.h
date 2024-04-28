@@ -1,8 +1,7 @@
 /**********************************************************************
  * File:        tordmain.h  (Formerly textordp.h)
  * Description: C++ top level textord code.
- * Author:		Ray Smith
- * Created:		Tue Jul 28 17:12:33 BST 1992
+ * Author:      Ray Smith
  *
  * (C) Copyright 1992, Hewlett-Packard Ltd.
  ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,26 +16,25 @@
  *
  **********************************************************************/
 
-#ifndef           TORDMAIN_H
-#define           TORDMAIN_H
+#ifndef TORDMAIN_H
+#define TORDMAIN_H
 
-#include          <time.h>
-#include          "params.h"
-#include          "ocrblock.h"
-#include          "blobs.h"
-#include          "blobbox.h"
+#include "blobbox.h"
+#include "blobs.h"
+#include "ocrblock.h"
+#include "params.h"
 
 struct Pix;
+
 namespace tesseract {
+
 class Tesseract;
 
-void SetBlobStrokeWidth(Pix* pix, BLOBNBOX* blob);
-void assign_blobs_to_blocks2(Pix* pix, BLOCK_LIST *blocks,
-                             TO_BLOCK_LIST *port_blocks);
-}  // namespace tesseract
+void SetBlobStrokeWidth(Image pix, BLOBNBOX *blob);
+void assign_blobs_to_blocks2(Image pix, BLOCK_LIST *blocks, TO_BLOCK_LIST *port_blocks);
 
-void tweak_row_baseline(ROW *row,
-                        double blshift_maxshift,
-                        double blshift_xfraction);
+void tweak_row_baseline(ROW *row, double blshift_maxshift, double blshift_xfraction);
+
+} // namespace tesseract
 
 #endif

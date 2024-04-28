@@ -28,6 +28,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.Window;
 
 import javax.swing.Timer;
 
@@ -35,7 +36,7 @@ import javax.swing.Timer;
  * The ScrollViewEventHandler takes care of any events which might happen on the
  * canvas and converts them to an according SVEvent, which is (using the
  * processEvent method) then added to a message queue. All events from the
- * message queue get sent gradually
+ * message queue get sent gradually.
  *
  * @author wanke@google.com
  */
@@ -59,7 +60,7 @@ public class SVEventHandler extends PBasicInputEventHandler implements
   private int lastXMove = 0;
   private int lastYMove = 0;
 
-  /** For Drawing a rubber-band rectangle for selection */
+  /** For Drawing a rubber-band rectangle for selection. */
   private int startX = 0;
   private int startY = 0;
   private float rubberBandTransparency = 0.5f;
@@ -262,7 +263,10 @@ public class SVEventHandler extends PBasicInputEventHandler implements
   public void windowClosing(WindowEvent e) {
     processEvent(new SVEvent(SVEventType.SVET_DESTROY, svWindow, lastXMove,
         lastYMove, 0, 0, null));
-    e.getWindow().dispose();
+    Window w = e.getWindow();
+    if (w != null) {
+      w.dispose();
+    }
     SVWindow.nrWindows--;
     if (SVWindow.nrWindows == 0) {
       processEvent(new SVEvent(SVEventType.SVET_EXIT, svWindow, lastXMove,
@@ -270,7 +274,7 @@ public class SVEventHandler extends PBasicInputEventHandler implements
     }
   }
 
-  /** These are all events we do not care about and throw away */
+  /** These are all events we do not care about and throw away. */
   public void keyReleased(KeyEvent e) {
   }
 

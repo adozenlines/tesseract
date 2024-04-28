@@ -82,7 +82,7 @@ public class SVWindow extends JFrame {
   // This really needs to be a fixed width stroke as the basic stroke is
   // anti-aliased and gets too faint, but the piccolo fixed width stroke
   // is too buggy and generates missing initial moveto in path definition
-  // errors with a IllegalPathStateException that cannot be caught because
+  // errors with an IllegalPathStateException that cannot be caught because
   // it is in the automatic repaint function. If we can fix the exceptions
   // in piccolo, then we can use the following instead of BasicStroke:
   //   import edu.umd.cs.piccolox.util.PFixedWidthStroke;
@@ -254,7 +254,7 @@ public class SVWindow extends JFrame {
     layer = canvas.getLayer();
     canvas.setBackground(Color.BLACK);
 
-    // Disable anitaliasing to make the lines more visible.
+    // Disable antialiasing to make the lines more visible.
     canvas.setDefaultRenderQuality(PPaintContext.LOW_QUALITY_RENDERING);
 
     setLayout(new BorderLayout());
@@ -606,6 +606,8 @@ public class SVWindow extends JFrame {
    * Shows a dialog presenting "Yes" and "No" as answers and returns either a
    * "y" or "n" to the client.
    *
+   * Closing the dialog without answering is handled like "No".
+   *
    * @param msg The text that is displayed in the dialog.
    */
   public void showYesNoDialog(String msg) {
@@ -613,13 +615,9 @@ public class SVWindow extends JFrame {
     int res =
         JOptionPane.showOptionDialog(this, msg, "", JOptionPane.YES_NO_OPTION,
             JOptionPane.QUESTION_MESSAGE, null, null, null);
-    SVEvent e = null;
 
-    if (res == 0) {
-      e = new SVEvent(SVEventType.SVET_INPUT, this, 0, 0, 0, 0, "y");
-    } else if (res == 1) {
-      e = new SVEvent(SVEventType.SVET_INPUT, this, 0, 0, 0, 0, "n");
-    }
+    SVEvent e = new SVEvent(SVEventType.SVET_INPUT, this, 0, 0, 0, 0,
+                            res == 0 ? "y" : "n");
     ScrollView.addMessage(e);
   }
 

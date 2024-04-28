@@ -1,8 +1,8 @@
 /**********************************************************************
  * File:        control.h  (Formerly control.h)
  * Description: Module-independent matcher controller.
- * Author:		Ray Smith
- * Created:		Thu Apr 23 11:09:58 BST 1992
+ * Author:      Ray Smith
+ * Created:     Thu Apr 23 11:09:58 BST 1992
  *
  * (C) Copyright 1992, Hewlett-Packard Ltd.
  ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,23 +22,16 @@
  * Module-independent matcher controller.
  */
 
-#ifndef           CONTROL_H
-#define           CONTROL_H
+#ifndef CONTROL_H
+#define CONTROL_H
 
-#include          "params.h"
-#include          "ocrblock.h"
-#include          "ratngs.h"
-#include          "statistc.h"
-#include          "pageres.h"
-
-enum ACCEPTABLE_WERD_TYPE
-{
-  AC_UNACCEPTABLE,               ///< Unacceptable word
-  AC_LOWER_CASE,                 ///< ALL lower case
-  AC_UPPER_CASE,                 ///< ALL upper case
-  AC_INITIAL_CAP,                ///< ALL but initial lc
-  AC_LC_ABBREV,                  ///< a.b.c.
-  AC_UC_ABBREV                   ///< A.B.C.
+enum ACCEPTABLE_WERD_TYPE {
+  AC_UNACCEPTABLE, ///< Unacceptable word
+  AC_LOWER_CASE,   ///< ALL lower case
+  AC_UPPER_CASE,   ///< ALL upper case
+  AC_INITIAL_CAP,  ///< ALL but initial lc
+  AC_LC_ABBREV,    ///< a.b.c.
+  AC_UC_ABBREV     ///< A.B.C.
 };
 
 #endif

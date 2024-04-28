@@ -1,8 +1,7 @@
 /******************************************************************
  * File:        docqual.h  (Formerly docqual.h)
  * Description: Document Quality Metrics
- * Author:		Phil Cheatle
- * Created:		Mon May  9 11:27:28 BST 1994
+ * Author:      Phil Cheatle
  *
  * (C) Copyright 1994, Hewlett-Packard Ltd.
  ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,19 +16,22 @@
  *
  **********************************************************************/
 
-#ifndef           DOCQUAL_H
-#define           DOCQUAL_H
+#ifndef DOCQUAL_H
+#define DOCQUAL_H
 
-#include          "control.h"
+#include <cstdint> // for int16_t
 
-enum GARBAGE_LEVEL
-{
-  G_NEVER_CRUNCH,
-  G_OK,
-  G_DODGY,
-  G_TERRIBLE
-};
+namespace tesseract {
 
-int16_t word_blob_quality(WERD_RES *word, ROW *row);
+class PAGE_RES_IT;
+class ROW;
+class WERD_RES;
+
+enum GARBAGE_LEVEL { G_NEVER_CRUNCH, G_OK, G_DODGY, G_TERRIBLE };
+
+int16_t word_blob_quality(WERD_RES *word);
 void reject_whole_page(PAGE_RES_IT &page_res_it);
+
+} // namespace tesseract
+
 #endif

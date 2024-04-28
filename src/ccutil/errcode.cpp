@@ -2,7 +2,6 @@
  * File:        errcode.cpp  (Formerly error.c)
  * Description: Generic error handler function
  * Author:      Ray Smith
- * Created:     Tue May  1 16:28:39 BST 1990
  *
  * (C) Copyright 1989, Hewlett-Packard Ltd.
  ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,18 +16,19 @@
  *
  **********************************************************************/
 
-#include          <stdio.h>
-#include          <stdlib.h>
-#include          <stdarg.h>
-#include          <string.h>
-#ifdef __UNIX__
-#include          <signal.h>
-#endif
-#include          "tprintf.h"
-#include          "errcode.h"
+#include "errcode.h"
 
-const ERRCODE BADERRACTION = "Illegal error action";
-#define MAX_MSG       1024
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <iostream> // for std::cerr
+#include <sstream>  // for std::stringstream
+
+namespace tesseract {
+
+constexpr ERRCODE BADERRACTION("Illegal error action");
+#define MAX_MSG 1024
 
 /**********************************************************************
  * error
@@ -37,55 +37,57 @@ const ERRCODE BADERRACTION = "Illegal error action";
  * Makes use of error messages and numbers in a common place.
  *
  **********************************************************************/
-void ERRCODE::error(             // handle error
-const char *caller,              // name of caller
-TessErrorLogCode action,         // action to take
-const char *format, ...          // special message
-) const {
-  va_list args;                  // variable args
-  char msg[MAX_MSG];
-  char *msgptr = msg;
+void ERRCODE::error(         // handle error
+    const char *caller,      // name of caller
+    TessErrorLogCode action, // action to take
+    const char *format, ...  // special message
+    ) const {
+  va_list args; // variable args
+  std::stringstream msg;
 
-  if (caller != nullptr)
-                                 //name of caller
-    msgptr += sprintf (msgptr, "%s:", caller);
-                                 //actual message
-  msgptr += sprintf (msgptr, "Error:%s", message);
-  if (format != nullptr) {
-    msgptr += sprintf (msgptr, ":");
-    va_start(args, format);  //variable list
-    #ifdef _WIN32
-                                 //print remainder
-    msgptr += _vsnprintf (msgptr, MAX_MSG - 2 - (msgptr - msg), format, args);
-    msg[MAX_MSG - 2] = '\0';     //ensure termination
-    strcat (msg, "\n");
-    #else
-                                 //print remainder
-    msgptr += vsprintf (msgptr, format, args);
-                                 //no specific
-    msgptr += sprintf (msgptr, "\n");
-    #endif
-    va_end(args);
+  if (caller != nullptr) {
+    // name of caller
+    msg << caller << ':';
   }
-  else
-                                 //no specific
-    msgptr += sprintf (msgptr, "\n");
+  // actual message
+  msg << "Error:" << message;
+  if (format != nullptr) {
+    char str[MAX_MSG];
+    va_start(args, format); // variable list
+    // print remainder
+    std::vsnprintf(str, sizeof(str), format, args);
+    // ensure termination
+    str[sizeof(str) - 1] = '\0';
+    va_end(args);
+    msg << ':' << str;
+  }
 
-  // %s is needed here so msg is printed correctly!
-  fprintf(stderr, "%s", msg);
+  std::cerr << msg.str() << '\n';
 
-  int* p = nullptr;
   switch (action) {
     case DBG:
     case TESSLOG:
-      return;                    //report only
+      return; // report only
     case TESSEXIT:
-      //err_exit();
     case ABORT:
-      // Create a deliberate segv as the stack trace is more useful that way.
-      if (!*p)
-        abort();
+#if !defined(NDEBUG)
+      // Create a deliberate abnormal exit as the stack trace is more useful
+      // that way. This is done only in debug builds, because the
+      // error message "segmentation fault" confuses most normal users.
+#  if defined(__GNUC__)
+      __builtin_trap();
+#  else
+      *reinterpret_cast<int *>(0) = 0;
+#  endif
+#endif
+      abort();
     default:
-      BADERRACTION.error ("error", ABORT, nullptr);
+      BADERRACTION.error("error", ABORT);
   }
 }
+
+void ERRCODE::error(const char *caller, TessErrorLogCode action) const {
+  error(caller, action, nullptr);
+}
+
+} // namespace tesseract

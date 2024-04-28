@@ -2,7 +2,6 @@
  ** Filename:    outfeat.c
  ** Purpose:     Definition of outline-features.
  ** Author:      Dan Johnson
- ** History:     11/13/90, DSJ, Created.
  **
  ** (c) Copyright Hewlett-Packard Company, 1988.
  ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,60 +14,50 @@
  ** See the License for the specific language governing permissions and
  ** limitations under the License.
  ******************************************************************************/
-/*----------------------------------------------------------------------------
-          Include Files and Type Defines
-----------------------------------------------------------------------------*/
+
 #include "outfeat.h"
 
 #include "classify.h"
-#include "efio.h"
 #include "featdefs.h"
 #include "mfoutline.h"
 #include "ocrfeatures.h"
 
-#include <stdio.h>
+#include <cstdio>
+
+namespace tesseract {
 
 /*----------------------------------------------------------------------------
               Public Code
 ----------------------------------------------------------------------------*/
-/*---------------------------------------------------------------------------*/
-namespace tesseract {
+
 /**
  * Convert each segment in the outline to a feature
  * and return the features.
  * @param Blob blob to extract pico-features from
  * @return Outline-features for Blob.
  * @note Globals: none
- * @note Exceptions: none
- * @note History:
- * - 11/13/90, DSJ, Created.
- * - 05/24/91, DSJ, Updated for either char or baseline normalize.
  */
 FEATURE_SET Classify::ExtractOutlineFeatures(TBLOB *Blob) {
-  LIST Outlines;
-  LIST RemainingOutlines;
-  MFOUTLINE Outline;
-  FEATURE_SET FeatureSet;
-  FLOAT32 XScale, YScale;
-
-  FeatureSet = NewFeatureSet (MAX_OUTLINE_FEATURES);
-  if (Blob == nullptr)
+  auto FeatureSet = new FEATURE_SET_STRUCT(MAX_OUTLINE_FEATURES);
+  if (Blob == nullptr) {
     return (FeatureSet);
+  }
 
-  Outlines = ConvertBlob (Blob);
+  auto Outlines = ConvertBlob(Blob);
 
+  float XScale, YScale;
   NormalizeOutlines(Outlines, &XScale, &YScale);
-  RemainingOutlines = Outlines;
+  auto RemainingOutlines = Outlines;
   iterate(RemainingOutlines) {
-    Outline = (MFOUTLINE) first_node (RemainingOutlines);
+    auto Outline = static_cast<MFOUTLINE>(RemainingOutlines->first_node());
     ConvertToOutlineFeatures(Outline, FeatureSet);
   }
-  if (classify_norm_method == baseline)
+  if (classify_norm_method == baseline) {
     NormalizeOutlineX(FeatureSet);
+  }
   FreeOutlines(Outlines);
   return (FeatureSet);
-}                                /* ExtractOutlineFeatures */
-}  // namespace tesseract
+} /* ExtractOutlineFeatures */
 
 /*----------------------------------------------------------------------------
               Private Code
@@ -85,39 +74,25 @@ FEATURE_SET Classify::ExtractOutlineFeatures(TBLOB *Blob) {
  * @param Start starting point of outline-feature
  * @param End ending point of outline-feature
  * @param FeatureSet set to add outline-feature to
- * @return none (results are placed in FeatureSet)
- * @note Globals: none
- * @note Exceptions: none
- * @note History: 11/13/90, DSJ, Created.
  */
-void AddOutlineFeatureToSet(FPOINT *Start,
-                            FPOINT *End,
-                            FEATURE_SET FeatureSet) {
-  FEATURE Feature;
-
-  Feature = NewFeature(&OutlineFeatDesc);
+void AddOutlineFeatureToSet(FPOINT *Start, FPOINT *End, FEATURE_SET FeatureSet) {
+  auto Feature = new FEATURE_STRUCT(&OutlineFeatDesc);
   Feature->Params[OutlineFeatDir] = NormalizedAngleFrom(Start, End, 1.0);
   Feature->Params[OutlineFeatX] = AverageOf(Start->x, End->x);
   Feature->Params[OutlineFeatY] = AverageOf(Start->y, End->y);
   Feature->Params[OutlineFeatLength] = DistanceBetween(*Start, *End);
   AddFeature(FeatureSet, Feature);
 
-}                                /* AddOutlineFeatureToSet */
-
+} /* AddOutlineFeatureToSet */
 
 /*---------------------------------------------------------------------------*/
 /**
  * This routine steps converts each section in the specified
  * outline to a feature described by its x,y position, length
  * and angle.
+ * Results are returned in FeatureSet.
  * @param Outline outline to extract outline-features from
  * @param FeatureSet set of features to add outline-features to
- * @return none (results are returned in FeatureSet)
- * @note Globals: none
- * @note Exceptions: none
- * @note History:
- * - 11/13/90, DSJ, Created.
- * - 5/24/91, DSJ, Added hidden edge capability.
  */
 void ConvertToOutlineFeatures(MFOUTLINE Outline, FEATURE_SET FeatureSet) {
   MFOUTLINE Next;
@@ -125,8 +100,9 @@ void ConvertToOutlineFeatures(MFOUTLINE Outline, FEATURE_SET FeatureSet) {
   FPOINT FeatureStart;
   FPOINT FeatureEnd;
 
-  if (DegenerateOutline (Outline))
+  if (DegenerateOutline(Outline)) {
     return;
+  }
 
   First = Outline;
   Next = First;
@@ -135,18 +111,16 @@ void ConvertToOutlineFeatures(MFOUTLINE Outline, FEATURE_SET FeatureSet) {
     Next = NextPointAfter(Next);
 
     /* note that an edge is hidden if the ending point of the edge is
-       marked as hidden.  This situation happens because the order of
-       the outlines is reversed when they are converted from the old
-       format.  In the old format, a hidden edge is marked by the
-       starting point for that edge. */
+   marked as hidden.  This situation happens because the order of
+   the outlines is reversed when they are converted from the old
+   format.  In the old format, a hidden edge is marked by the
+   starting point for that edge. */
     if (!PointAt(Next)->Hidden) {
       FeatureEnd = PointAt(Next)->Point;
       AddOutlineFeatureToSet(&FeatureStart, &FeatureEnd, FeatureSet);
     }
-  }
-  while (Next != First);
-}                                /* ConvertToOutlineFeatures */
-
+  } while (Next != First);
+} /* ConvertToOutlineFeatures */
 
 /*---------------------------------------------------------------------------*/
 /**
@@ -154,22 +128,20 @@ void ConvertToOutlineFeatures(MFOUTLINE Outline, FEATURE_SET FeatureSet) {
  * over all of the outline-features in FeatureSet and then
  * renormalizes the outline-features to force this average
  * to be the x origin (i.e. x=0).
+ * FeatureSet is changed.
  * @param FeatureSet outline-features to be normalized
- * @return none (FeatureSet is changed)
- * @note Globals: none
- * @note Exceptions: none
- * @note History: 11/13/90, DSJ, Created.
  */
 void NormalizeOutlineX(FEATURE_SET FeatureSet) {
   int i;
   FEATURE Feature;
-  FLOAT32 Length;
-  FLOAT32 TotalX = 0.0;
-  FLOAT32 TotalWeight = 0.0;
-  FLOAT32 Origin;
+  float Length;
+  float TotalX = 0.0;
+  float TotalWeight = 0.0;
+  float Origin;
 
-  if (FeatureSet->NumFeatures <= 0)
+  if (FeatureSet->NumFeatures <= 0) {
     return;
+  }
 
   for (i = 0; i < FeatureSet->NumFeatures; i++) {
     Feature = FeatureSet->Features[i];
@@ -183,4 +155,6 @@ void NormalizeOutlineX(FEATURE_SET FeatureSet) {
     Feature = FeatureSet->Features[i];
     Feature->Params[OutlineFeatX] -= Origin;
   }
-}                                /* NormalizeOutlineX */
+} /* NormalizeOutlineX */
+
+} // namespace tesseract

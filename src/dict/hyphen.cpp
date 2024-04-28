@@ -1,12 +1,7 @@
-/* -*-C-*-
- ********************************************************************************
- * File:	 hyphen.cpp  (Formerly hyphen.c)
+/******************************************************************************
+ * File:         hyphen.cpp  (Formerly hyphen.c)
  * Description:  Functions for maintaining information about hyphenated words.
  * Author:       Mark Seaman, OCR Technology
- * Created:      Fri Oct 16 14:37:00 1987
- * Modified:     Thu Mar 14 11:09:43 1991 (Mark Seaman) marks@hpgrlt
- * Language:     C
- * Package:      N/A
  * Status:       Reusable Software Component
  *
  * (c) Copyright 1987, Hewlett-Packard Company.
@@ -20,7 +15,7 @@
  ** See the License for the specific language governing permissions and
  ** limitations under the License.
  *
- *********************************************************************************/
+ *****************************************************************************/
 
 #include "dict.h"
 
@@ -38,16 +33,15 @@ void Dict::reset_hyphen_vars(bool last_word_on_line) {
     }
   }
   if (hyphen_debug_level) {
-    tprintf("reset_hyphen_vars: last_word_on_line %d -> %d\n",
-            last_word_on_line_, last_word_on_line);
+    tprintf("reset_hyphen_vars: last_word_on_line %d -> %d\n", last_word_on_line_,
+            last_word_on_line);
   }
   last_word_on_line_ = last_word_on_line;
 }
 
 // Update hyphen_word_, and copy the given DawgPositionVectors into
 // hyphen_active_dawgs_.
-void Dict::set_hyphen_word(const WERD_CHOICE &word,
-                           const DawgPositionVector &active_dawgs) {
+void Dict::set_hyphen_word(const WERD_CHOICE &word, const DawgPositionVector &active_dawgs) {
   if (hyphen_word_ == nullptr) {
     hyphen_word_ = new WERD_CHOICE(word.unicharset());
     hyphen_word_->make_bad();
@@ -63,4 +57,4 @@ void Dict::set_hyphen_word(const WERD_CHOICE &word,
     hyphen_word_->print("set_hyphen_word: ");
   }
 }
-}  // namespace tesseract
+} // namespace tesseract

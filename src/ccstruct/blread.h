@@ -1,8 +1,7 @@
 /**********************************************************************
  * File:        blread.h  (Formerly pdread.h)
  * Description: Friend function of BLOCK to read the uscan pd file.
- * Author:		Ray Smith
- * Created:		Mon Mar 18 14:39:00 GMT 1991
+ * Author:      Ray Smith
  *
  * (C) Copyright 1991, Hewlett-Packard Ltd.
  ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,17 +16,25 @@
  *
  **********************************************************************/
 
-#ifndef           BLREAD_H
-#define           BLREAD_H
+#ifndef BLREAD_H
+#define BLREAD_H
 
-#include          "params.h"
-#include          "ocrblock.h"
+#include <cstdint> // for int32_t
+#include <string>  // for std::string
 
-bool read_unlv_file(                    //print list of sides
-                     STRING name,        //basename of file
-                     int32_t xsize,        //image size
-                     int32_t ysize,        //image size
-                     BLOCK_LIST *blocks  //output list
-                    );
+namespace tesseract {
+
+class BLOCK_LIST;
+
+bool read_unlv_file(   // print list of sides
+    std::string &name, // basename of file
+    int32_t xsize,     // image size
+    int32_t ysize,     // image size
+    BLOCK_LIST *blocks // output list
+);
+
 void FullPageBlock(int width, int height, BLOCK_LIST *blocks);
+
+} // namespace tesseract
+
 #endif

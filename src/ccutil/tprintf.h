@@ -2,7 +2,6 @@
  * File:        tprintf.h
  * Description: Trace version of printf - portable between UX and NT
  * Author:      Phil Cheatle
- * Created:     Wed Jun 28 15:01:15 BST 1995
  *
  * (C) Copyright 1995, Hewlett-Packard Ltd.
  ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,20 +16,28 @@
  *
  **********************************************************************/
 
-#ifndef           TESSERACT_CCUTIL_TPRINTF_H
-#define           TESSERACT_CCUTIL_TPRINTF_H
+#ifndef TESSERACT_CCUTIL_TPRINTF_H
+#define TESSERACT_CCUTIL_TPRINTF_H
 
-#include "params.h"
+#include "params.h" // for BOOL_VAR_H
+#include <tesseract/export.h> // for TESS_API
 
-extern DLLSYM STRING_VAR_H(debug_file, "",
-                           "File to send tprintf output to");
-extern DLLSYM BOOL_VAR_H(debug_window_on, TRUE,
-                         "Send tprintf to window unless file set");
+namespace tesseract {
+
+#if !defined(__GNUC__) && !defined(__attribute__)
+# define __attribute__(attr) // compiler without support for __attribute__
+#endif
+
+// Disable some log messages by setting log_level > 0.
+extern TESS_API INT_VAR_H(log_level);
 
 // Main logging function.
-#define tprintf(...) tprintf_internal(__VA_ARGS__)
+extern TESS_API void tprintf( // Trace printf
+    const char *format, ...)  // Message
+    __attribute__((format(printf, 1, 2)));
 
-extern TESS_API void tprintf_internal(  // Trace printf
-    const char *format, ...);           // Message
+} // namespace tesseract
 
-#endif  // define TESSERACT_CCUTIL_TPRINTF_H
+#undef __attribute__
+
+#endif // define TESSERACT_CCUTIL_TPRINTF_H

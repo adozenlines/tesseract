@@ -20,7 +20,9 @@
 #ifndef CJKPITCH_H_
 #define CJKPITCH_H_
 
-#include          "blobbox.h"
+#include "blobbox.h"
+
+namespace tesseract {
 
 // Function to test "fixed-pitchness" of the input text and estimating
 // character pitch parameters for it, based on CJK fixed-pitch layout
@@ -57,7 +59,7 @@
 // the final decision about fixed-pitchness of each row and compute
 // pitch and spacing parameters.
 //
-// (If a row is considered to be propotional, pitch_decision for the
+// (If a row is considered to be proportional, pitch_decision for the
 // row is set to PITCH_CORR_PROP and the later phase
 // (i.e. Textord::to_spacing()) should determine its spacing
 // parameters)
@@ -65,7 +67,9 @@
 // This function doesn't provide all information required by
 // fixed_pitch_words() and the rows need to be processed with
 // make_prop_words() even if they are fixed pitched.
-void compute_fixed_pitch_cjk(ICOORD page_tr,               // top right
-                             TO_BLOCK_LIST *port_blocks);  // input list
+void compute_fixed_pitch_cjk(ICOORD page_tr,              // top right
+                             TO_BLOCK_LIST *port_blocks); // input list
 
-#endif  // CJKPITCH_H_
+} // namespace tesseract
+
+#endif // CJKPITCH_H_

@@ -1,10 +1,9 @@
 /******************************************************************************
- **	Filename:    outfeat.h
- **	Purpose:     Definition of outline features.
- **	Author:      Dan Johnson
- **	History:     11/13/90, DSJ, Created.
+ ** Filename:    outfeat.h
+ ** Purpose:     Definition of outline features.
+ ** Author:      Dan Johnson
  **
- **	(c) Copyright Hewlett-Packard Company, 1988.
+ ** (c) Copyright Hewlett-Packard Company, 1988.
  ** Licensed under the Apache License, Version 2.0 (the "License");
  ** you may not use this file except in compliance with the License.
  ** You may obtain a copy of the License at
@@ -15,15 +14,15 @@
  ** See the License for the specific language governing permissions and
  ** limitations under the License.
  ******************************************************************************/
-#ifndef   OUTFEAT_H
-#define   OUTFEAT_H
 
-/**----------------------------------------------------------------------------
-          Include Files and Type Defines
-----------------------------------------------------------------------------**/
-#include "ocrfeatures.h"
+#ifndef OUTFEAT_H
+#define OUTFEAT_H
+
 #include "fpoint.h"
 #include "mfoutline.h"
+#include "ocrfeatures.h"
+
+namespace tesseract {
 
 typedef enum {
   OutlineFeatX,
@@ -32,17 +31,17 @@ typedef enum {
   OutlineFeatDir
 } OUTLINE_FEAT_PARAM_NAME;
 
-#define MAX_OUTLINE_FEATURES  (100)
+#define MAX_OUTLINE_FEATURES (100)
 
 /*---------------------------------------------------------------------------
           Privat Function Prototypes
 ----------------------------------------------------------------------------*/
-void AddOutlineFeatureToSet(FPOINT *Start,
-                            FPOINT *End,
-                            FEATURE_SET FeatureSet);
+void AddOutlineFeatureToSet(FPOINT *Start, FPOINT *End, FEATURE_SET FeatureSet);
 
 void ConvertToOutlineFeatures(MFOUTLINE Outline, FEATURE_SET FeatureSet);
 
 void NormalizeOutlineX(FEATURE_SET FeatureSet);
+
+} // namespace tesseract
 
 #endif

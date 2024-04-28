@@ -1,10 +1,9 @@
 /******************************************************************************
- **      Filename:       mfx.c
- **      Purpose:        Micro feature extraction routines
- **      Author:         Dan Johnson
- **      History:        7/21/89, DSJ, Created.
+ ** Filename:       mfx.c
+ ** Purpose:        Micro feature extraction routines
+ ** Author:         Dan Johnson
  **
- **      (c) Copyright Hewlett-Packard Company, 1988.
+ ** (c) Copyright Hewlett-Packard Company, 1988.
  ** Licensed under the Apache License, Version 2.0 (the "License");
  ** you may not use this file except in compliance with the License.
  ** You may obtain a copy of the License at
@@ -14,45 +13,30 @@
  ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  ** See the License for the specific language governing permissions and
  ** limitations under the License.
- ******************************************************************************/
-/*----------------------------------------------------------------------------
-          Include Files and Type Defines
-----------------------------------------------------------------------------*/
+ *****************************************************************************/
+
+#include "mfx.h"
+
+#include "clusttool.h" //NEEDED
+#include "intfx.h"
 #include "mfdefs.h"
 #include "mfoutline.h"
-#include "clusttool.h"           //NEEDED
-#include "const.h"
-#include "intfx.h"
 #include "normalis.h"
 #include "params.h"
 
-#include <math.h>
-
-/*----------------------------------------------------------------------------
-          Variables
-----------------------------------------------------------------------------*/
+namespace tesseract {
 
 /* old numbers corresponded to 10.0 degrees and 80.0 degrees */
-double_VAR(classify_min_slope, 0.414213562,
-           "Slope below which lines are called horizontal");
-double_VAR(classify_max_slope, 2.414213562,
-           "Slope above which lines are called vertical");
-
-/*----------------------------------------------------------------------------
-          Macros
-----------------------------------------------------------------------------*/
-/* miscellaneous macros */
-#define NormalizeAngle(A)       ( (((A)<0)?((A)+2*PI):(A)) / (2*PI) )
+double_VAR(classify_min_slope, 0.414213562, "Slope below which lines are called horizontal");
+double_VAR(classify_max_slope, 2.414213562, "Slope above which lines are called vertical");
 
 /*----------------------------------------------------------------------------
           Private Function Prototypes
 -----------------------------------------------------------------------------*/
-FLOAT32 ComputeOrientation(MFEDGEPT *Start, MFEDGEPT *End);
 
-MICROFEATURES ConvertToMicroFeatures(MFOUTLINE Outline,
-                                     MICROFEATURES MicroFeatures);
+MICROFEATURES ConvertToMicroFeatures(MFOUTLINE Outline, MICROFEATURES MicroFeatures);
 
-MICROFEATURE ExtractMicroFeature(MFOUTLINE Start, MFOUTLINE End);
+MicroFeature ExtractMicroFeature(MFOUTLINE Start, MFOUTLINE End);
 
 /*----------------------------------------------------------------------------
             Public Code
@@ -66,27 +50,24 @@ MICROFEATURE ExtractMicroFeature(MFOUTLINE Start, MFOUTLINE End);
  * @param Blob blob to extract micro-features from
  * @param cn_denorm control parameter to feature extractor
  * @return List of micro-features extracted from the blob.
- * @note Exceptions: none
- * @note History: 7/21/89, DSJ, Created.
  */
-MICROFEATURES BlobMicroFeatures(TBLOB* Blob, const DENORM& cn_denorm) {
-  MICROFEATURES MicroFeatures = NIL_LIST;
+MICROFEATURES BlobMicroFeatures(TBLOB *Blob, const DENORM &cn_denorm) {
+  MICROFEATURES MicroFeatures;
   LIST Outlines;
   LIST RemainingOutlines;
-  MFOUTLINE Outline;
 
   if (Blob != nullptr) {
     Outlines = ConvertBlob(Blob);
 
     RemainingOutlines = Outlines;
     iterate(RemainingOutlines) {
-      Outline = (MFOUTLINE) first_node (RemainingOutlines);
+      auto Outline = static_cast<MFOUTLINE>(RemainingOutlines->first_node());
       CharNormalizeOutline(Outline, cn_denorm);
     }
 
     RemainingOutlines = Outlines;
     iterate(RemainingOutlines) {
-      Outline = (MFOUTLINE) first_node(RemainingOutlines);
+      auto Outline = static_cast<MFOUTLINE>(RemainingOutlines->first_node());
       FindDirectionChanges(Outline, classify_min_slope, classify_max_slope);
       MarkDirectionChanges(Outline);
       MicroFeatures = ConvertToMicroFeatures(Outline, MicroFeatures);
@@ -94,39 +75,11 @@ MICROFEATURES BlobMicroFeatures(TBLOB* Blob, const DENORM& cn_denorm) {
     FreeOutlines(Outlines);
   }
   return MicroFeatures;
-}                                /* BlobMicroFeatures */
-
+} /* BlobMicroFeatures */
 
 /*---------------------------------------------------------------------------
             Private Code
 ---------------------------------------------------------------------------*/
-
-/**
- * This routine computes the orientation parameter of the
- * specified micro-feature.  The orientation is the angle of
- * the vector from Start to End.  It is normalized to a number
- * between 0 and 1 where 0 corresponds to 0 degrees and 1
- * corresponds to 360 degrees.  The actual range is [0,1), i.e.
- * 1 is excluded from the range (since it is actual the
- * same orientation as 0).  This routine assumes that Start
- * and End are not the same point.
- * @param Start           starting edge point of micro-feature
- * @param End             ending edge point of micro-feature
- * @note Globals: none
- * @return Orientation parameter for the specified micro-feature.
- * @note Exceptions: none
- * @note History: 7/27/89, DSJ, Created.
- */
-FLOAT32 ComputeOrientation(MFEDGEPT *Start, MFEDGEPT *End) {
-  FLOAT32 Orientation;
-
-  Orientation = NormalizeAngle (AngleFrom (Start->Point, End->Point));
-
-  /* ensure that round-off errors do not put circular param out of range */
-  if ((Orientation < 0) || (Orientation >= 1))
-    Orientation = 0;
-  return (Orientation);
-}                                /* ComputeOrientation */
 
 /**
  * Convert Outline to MicroFeatures
@@ -134,34 +87,29 @@ FLOAT32 ComputeOrientation(MFEDGEPT *Start, MFEDGEPT *End) {
  * @param MicroFeatures   list of micro-features to add to
  * @return List of micro-features with new features added to front.
  * @note Globals: none
- * @note Exceptions: none
- * @note History: 7/26/89, DSJ, Created.
  */
-MICROFEATURES ConvertToMicroFeatures(MFOUTLINE Outline,
-                                     MICROFEATURES MicroFeatures) {
+MICROFEATURES ConvertToMicroFeatures(MFOUTLINE Outline, MICROFEATURES MicroFeatures) {
   MFOUTLINE Current;
   MFOUTLINE Last;
   MFOUTLINE First;
-  MICROFEATURE NewFeature;
 
-  if (DegenerateOutline (Outline))
+  if (DegenerateOutline(Outline)) {
     return (MicroFeatures);
+  }
 
-  First = NextExtremity (Outline);
+  First = NextExtremity(Outline);
   Last = First;
   do {
-    Current = NextExtremity (Last);
+    Current = NextExtremity(Last);
     if (!PointAt(Current)->Hidden) {
-      NewFeature = ExtractMicroFeature (Last, Current);
-      if (NewFeature != nullptr)
-        MicroFeatures = push (MicroFeatures, NewFeature);
+      auto NewFeature = ExtractMicroFeature(Last, Current);
+      MicroFeatures.push_front(NewFeature);
     }
     Last = Current;
-  }
-  while (Last != First);
+  } while (Last != First);
 
-  return (MicroFeatures);
-}                                /* ConvertToMicroFeatures */
+  return MicroFeatures;
+} /* ConvertToMicroFeatures */
 
 /**
  * This routine computes the feature parameters which describe
@@ -175,25 +123,22 @@ MICROFEATURES ConvertToMicroFeatures(MFOUTLINE Outline,
  * @param End ending point of micro-feature
  * @return New micro-feature or nullptr if the feature was rejected.
  * @note Globals: none
- * @note Exceptions: none
- * @note History:
- * - 7/26/89, DSJ, Created.
- * - 11/17/89, DSJ, Added handling for Start and End same point.
  */
-MICROFEATURE ExtractMicroFeature(MFOUTLINE Start, MFOUTLINE End) {
-  MICROFEATURE NewFeature;
+MicroFeature ExtractMicroFeature(MFOUTLINE Start, MFOUTLINE End) {
   MFEDGEPT *P1, *P2;
 
   P1 = PointAt(Start);
   P2 = PointAt(End);
 
-  NewFeature = NewMicroFeature ();
-  NewFeature[XPOSITION] = AverageOf(P1->Point.x, P2->Point.x);
-  NewFeature[YPOSITION] = AverageOf(P1->Point.y, P2->Point.y);
-  NewFeature[MFLENGTH] = DistanceBetween(P1->Point, P2->Point);
-  NewFeature[ORIENTATION] = NormalizedAngleFrom(&P1->Point, &P2->Point, 1.0);
-  NewFeature[FIRSTBULGE] = 0.0f;  // deprecated
-  NewFeature[SECONDBULGE] = 0.0f;  // deprecated
+  MicroFeature NewFeature;
+  NewFeature[(int)MicroFeatureParameter::MFXPosition] = AverageOf(P1->Point.x, P2->Point.x);
+  NewFeature[(int)MicroFeatureParameter::MFYPosition] = AverageOf(P1->Point.y, P2->Point.y);
+  NewFeature[(int)MicroFeatureParameter::MFLength] = DistanceBetween(P1->Point, P2->Point);
+  NewFeature[(int)MicroFeatureParameter::MFDirection] = NormalizedAngleFrom(&P1->Point, &P2->Point, 1.0);
+  NewFeature[(int)MicroFeatureParameter::MFBulge1] = 0.0f;  // deprecated
+  NewFeature[(int)MicroFeatureParameter::MFBulge2] = 0.0f; // deprecated
 
   return NewFeature;
-}                                /* ExtractMicroFeature */
+} /* ExtractMicroFeature */
+
+} // namespace tesseract
